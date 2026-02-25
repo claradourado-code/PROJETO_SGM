@@ -7,6 +7,7 @@ require_once '../config/database.php';
 
 header('Content-Type: application/json');
 
+// Captura o JSON enviado pelo Fetch/JS
 $dadosBrutos = file_get_contents("php://input");
 $data = json_decode($dadosBrutos);
 
@@ -18,6 +19,7 @@ if (!$data || !isset($data->email) || !isset($data->senha)) {
 $email = $conn->real_escape_string(trim($data->email));
 $senha = trim($data->senha);
 
+// Busca o usuário
 $sql = "SELECT id_usuario, nome, senha_hash, perfil, ativo 
         FROM usuarios 
         WHERE email = '$email' 
@@ -29,6 +31,7 @@ if ($result && $result->num_rows === 1) {
 
     $user = $result->fetch_assoc();
 
+    // (Opcional) Bloquear usuário inativo
     if ((int)$user['ativo'] !== 1) {
         echo json_encode(["success" => false, "message" => "Usuário inativo."]);
         exit;
