@@ -6,7 +6,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <style>
-        body { background-color: #f8f9fa; display: flex; align-items: center; height: 100vh; }
+        body { background-color: #f1eaeeff; display: flex; align-items: center; height: 100vh; }
         .login-card { width: 100%; max-width: 400px; margin: auto; }
     </style>
 </head>
@@ -25,9 +25,10 @@
             <button type="submit" class="btn btn-primary w-100">Entrar</button>
             <div id="mensagem" class="mt-3 text-center text-danger small"></div>
         </form>
-    </div>
-
+ 
+</div>
     <script src="assets/js/login.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+
 </body>
 </html>
