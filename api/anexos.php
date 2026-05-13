@@ -10,7 +10,7 @@ header("Access-Control-Allow-Methods: GET");
 // ATENÇÃO: Preencha com os dados do seu servidor
 $host = 'localhost';
 $dbname = 'NOME_DO_SEU_BANCO';
-$user = 'SEU_USUARIO';
+$user = 'SEU_USUARIO'; 
 $pass = 'SUA_SENHA';
 
 // 3. Verifica se o parâmetro ID foi enviado via GET
