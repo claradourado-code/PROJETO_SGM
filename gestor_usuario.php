@@ -1,114 +1,170 @@
+<?php
+session_start();
+if (!isset($_SESSION['user_id']) || $_SESSION['user_perfil'] !== 'gestor') {
+    header("Location: login.php"); exit;
+}
+?>
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRUD de Usuários</title>
-    <style>
-        /* Estilos básicos para deixar a tela bonita */
-        body { font-family: Arial, sans-serif; background-color: #f4f4f9; padding: 20px; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        h2, h3 { color: #333; }
-        
-        /* Tabela */
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
-        th { background-color: #007bff; color: white; }
-        
-        /* Botões */
-        button { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-add { background-color: #28a745; color: white; margin-bottom: 15px; }
-        .btn-add:hover { background-color: #218838; }
-        .btn-edit { background-color: #ffc107; color: black; }
-        .btn-delete { background-color: #dc3545; color: white; }
-        
-        /* Formulário */
-        #form-section { display: none; background: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold;}
-        .form-group input { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-    </style>
+    <title>SGM - Gestão de Usuários</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/modern.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 <body>
-
-    <div class="container">
-        <h2>Gerenciamento de Usuários</h2>
-        
-        <button class="btn-add" onclick="abrirFormulario()">+ Novo Usuário</button>
-
-        <div id="form-section">
-            <h3>Cadastrar / Editar Usuário</h3>
-            <div class="form-group">
-                <label>Nome:</label>
-                <input type="text" id="nome" placeholder="Ex: João da Silva">
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="gestor_dashboard.php">SGM ADMIN</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="gestor_dashboard.php">Início</a>
+                <a class="nav-link active" href="gestor_usuario.php">Usuários</a>
+                <a class="nav-link text-danger" href="api/logout.php"><i class="bi bi-box-arrow-right"></i></a>
             </div>
-            <div class="form-group">
-                <label>Email:</label>
-                <input type="email" id="email" placeholder="Ex: joao@email.com">
-            </div>
-            <button class="btn-add" onclick="salvarUsuario()">Salvar</button>
-            <button onclick="fecharFormulario()" style="background: #6c757d; color: white;">Cancelar</button>
+        </div>
+    </nav>
+
+    <div class="container animate-fade-in">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold mb-0">Usuários do Sistema</h2>
+            <button class="btn btn-primary" onclick="abrirModal()">
+                <i class="bi bi-person-plus-fill me-1"></i> Novo Usuário
+            </button>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nome</th>
-                    <th>Email</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody id="lista-usuarios">
-                <tr>
-                    <td>1</td>
-                    <td>Maria Souza</td>
-                    <td>maria.souza@email.com</td>
-                    <td>
-                        <button class="btn-edit" onclick="editarUsuario()">Editar</button>
-                        <button class="btn-delete" onclick="deletarUsuario()">Excluir</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="glass-card overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-dark text-white">
+                        <tr>
+                            <th class="ps-4">Nome</th>
+                            <th>Email</th>
+                            <th>Perfil</th>
+                            <th>Status</th>
+                            <th class="text-center pe-4">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaUsuarios">
+                        <!-- Conteúdo AJAX -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
+    <!-- Modal -->
+    <div class="modal fade" id="modalUsuario" tabindex="-1">
+        <div class="modal-dialog">
+            <form id="formUsuario" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Novo Usuário</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="id_usuario">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Nome Completo</label>
+                        <input type="text" id="nome" class="form-control border-0 shadow-sm" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">E-mail</label>
+                        <input type="email" id="email" class="form-control border-0 shadow-sm" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Perfil de Acesso</label>
+                        <select id="perfil" class="form-select border-0 shadow-sm" required>
+                            <option value="solicitante">Solicitante</option>
+                            <option value="tecnico">Técnico</option>
+                            <option value="gestor">Gestor</option>
+                        </select>
+                    </div>
+                    <div id="areaSenha" class="mb-3">
+                        <label class="form-label fw-bold small">Senha Inicial</label>
+                        <input type="password" id="senha" class="form-control border-0 shadow-sm" placeholder="Mínimo 6 caracteres">
+                        <small class="text-muted">Deixe em branco para manter a senha atual ao editar.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary w-100 py-2">Salvar Usuário</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function abrirFormulario() {
-            document.getElementById('form-section').style.display = 'block';
-            document.getElementById('nome').value = ''; // Limpa o campo
-            document.getElementById('email').value = ''; // Limpa o campo
+        const modal = new bootstrap.Modal(document.getElementById('modalUsuario'));
+
+        async function carregar() {
+            const res = await fetch('api/usuarios_gestao.php?acao=listar');
+            const usuarios = await res.json();
+            const body = document.getElementById('tabelaUsuarios');
+
+            body.innerHTML = usuarios.map(u => `
+                <tr>
+                    <td class="ps-4 fw-bold">${u.nome}</td>
+                    <td>${u.email}</td>
+                    <td><span class="badge bg-opacity-10 text-dark border" style="background-color: #e9ecef">${u.perfil.toUpperCase()}</span></td>
+                    <td><span class="badge ${u.ativo == 1 ? 'bg-success' : 'bg-danger'}">${u.ativo == 1 ? 'Ativo' : 'Inativo'}</span></td>
+                    <td class="text-center pe-4">
+                        <button class="btn btn-sm btn-outline-primary" onclick='editar(${JSON.stringify(u)})'><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="excluir(${u.id_usuario})"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
         }
 
-        function fecharFormulario() {
-            document.getElementById('form-section').style.display = 'none';
+        function abrirModal() {
+            document.getElementById('formUsuario').reset();
+            document.getElementById('id_usuario').value = '';
+            document.getElementById('modalTitle').innerText = 'Novo Usuário';
+            document.getElementById('senha').required = true;
+            modal.show();
         }
 
-        function salvarUsuario() {
-            const nome = document.getElementById('nome').value;
-            const email = document.getElementById('email').value;
+        function editar(u) {
+            document.getElementById('id_usuario').value = u.id_usuario;
+            document.getElementById('nome').value = u.nome;
+            document.getElementById('email').value = u.email;
+            document.getElementById('perfil').value = u.perfil;
+            document.getElementById('modalTitle').innerText = 'Editar Usuário';
+            document.getElementById('senha').required = false;
+            modal.show();
+        }
+
+        document.getElementById('formUsuario').onsubmit = async (e) => {
+            e.preventDefault();
+            const payload = {
+                id: document.getElementById('id_usuario').value,
+                nome: document.getElementById('nome').value,
+                email: document.getElementById('email').value,
+                perfil: document.getElementById('perfil').value,
+                senha: document.getElementById('senha').value
+            };
             
-            if(nome === '' || email === '') {
-                alert("Por favor, preencha todos os campos!");
-                return;
+            const res = await fetch('api/usuarios_gestao.php?acao=salvar', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            
+            if((await res.json()).success) {
+                modal.hide();
+                carregar();
+            } else {
+                alert("Erro ao salvar usuário.");
             }
+        };
 
-            alert("Você clicou em salvar! O usuário " + nome + " seria salvo no banco de dados agora.");
-            fecharFormulario();
+        async function excluir(id) {
+            if(!confirm("Deseja realmente inativar este usuário?")) return;
+            const res = await fetch(`api/usuarios_gestao.php?acao=excluir&id=${id}`, { method: 'DELETE' });
+            if((await res.json()).success) carregar();
         }
 
-        function editarUsuario() {
-            abrirFormulario();
-            // Aqui você puxaria os dados da tabela para os campos do form
-            alert("Aqui você preencheria os inputs com os dados da pessoa para alterar.");
-        }
-
-        function deletarUsuario() {
-            const confirmacao = confirm("Tem certeza que deseja excluir este usuário?");
-            if (confirmacao) {
-                alert("Usuário excluído!");
-            }
-        }
+        carregar();
     </script>
 </body>
 </html>

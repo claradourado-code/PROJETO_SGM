@@ -1,8 +1,7 @@
 <?php
 session_start();
-// Verifica se o usuário está logado e se é técnico
-if (!isset($_SESSION['user_id']) || $_SESSION['user_perfil'] !== 'tecnico') { 
-    header("Location: login.php"); exit; 
+if (!isset($_SESSION['user_id']) || $_SESSION['user_perfil'] !== 'tecnico') {
+    header("Location: login.php"); exit;
 }
 $id = $_GET['id'] ?? 0;
 ?>
@@ -10,95 +9,79 @@ $id = $_GET['id'] ?? 0;
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>SGM - Atendimento Técnico</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGM - Execução de Serviço</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/modern.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        .chat-box { height: 250px; overflow-y: auto; background: #f8f9fa; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
-        .thumb-img { width: 80px; height: 80px; object-fit: cover; cursor: pointer; border-radius: 4px; border: 1px solid #ddd; transition: 0.2s; }
-        .thumb-img:hover { opacity: 0.8; }
-        .msg { background: white; padding: 8px; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .service-action-btn { height: 70px; font-size: 1.2rem; font-weight: bold; border-radius: 15px; }
+        .info-label { font-size: 0.8rem; color: #6c757d; text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
 <body class="bg-light">
-    <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <a href="tecnico_minhas_tarefas.php" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Voltar
-            </a>
-            <h4 class="mb-0">Ordem de Serviço #<?= $id ?></h4>
+    <nav class="navbar navbar-dark mb-4" style="background: #2b2d42 !important;">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="tecnico_minhas_tarefas.php">SGM TÉCNICO</a>
+            <a href="tecnico_minhas_tarefas.php" class="btn btn-sm btn-outline-light border-0"><i class="bi bi-chevron-left me-1"></i> Voltar</a>
         </div>
+    </nav>
 
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card shadow-sm mb-3">
-                    <div class="card-header bg-white fw-bold">Detalhes do Chamado</div>
-                    <div class="card-body">
-                        <div id="detalhesTexto">Carregando informações...</div>
-                        <div id="containerFotos" class="d-flex gap-2 flex-wrap mt-3"></div>
+    <div class="container animate-fade-in pb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <div class="glass-card p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold mb-0">Tarefa #<?= $id ?></h4>
+                        <span id="badgeStatus" class="badge bg-secondary px-3 py-2">CARREGANDO...</span>
                     </div>
-                </div>
 
-                <div class="card shadow-sm mb-3">
-                    <div class="card-header bg-dark text-white fw-bold">Diário de Bordo / Histórico</div>
-                    <div class="card-body">
-                        <div id="listaComentarios" class="chat-box mb-3"></div>
-                        <div class="input-group">
-                            <input type="text" id="txtMsg" class="form-control" placeholder="Digite uma atualização...">
-                            <button class="btn btn-primary" onclick="enviarComentario()">
-                                <i class="bi bi-send"></i>
-                            </button>
+                    <div class="row g-4 mb-4">
+                        <div class="col-6">
+                            <div class="info-label">Local</div>
+                            <div id="infoLocal" class="fw-bold fs-5">...</div>
+                        </div>
+                        <div class="col-6 text-end">
+                            <div class="info-label">Prioridade</div>
+                            <div id="infoPrioridade" class="fw-bold fs-5">...</div>
+                        </div>
+                        <div class="col-12">
+                            <div class="info-label">Descrição do Problema</div>
+                            <p id="infoDescricao" class="bg-white p-3 rounded-3 shadow-sm mt-1 mb-0 border">...</p>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <div class="col-md-6">
-                <div id="cardAcao" class="card shadow-sm border-primary">
-                    <div class="card-header bg-primary text-white fw-bold">Ações do Atendimento</div>
-                    <div class="card-body">
-                        
-                        <div id="areaIniciar" style="display:none;">
-                            <p class="text-muted">O chamado está aguardando o início da execução.</p>
-                            <button onclick="mudarStatus('iniciar')" class="btn btn-primary btn-lg w-100">
-                                <i class="bi bi-play-fill"></i> INICIAR TRABALHO
-                            </button>
-                        </div>
+                    <div id="containerFotos" class="row g-2 mb-4"></div>
 
-                        <form id="formFinalizar" style="display:none;" enctype="multipart/form-data">
-                            <input type="hidden" name="id_chamado" value="<?= $id ?>">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Solução Aplicada</label>
-                                <textarea name="solucao" class="form-control" rows="4" required placeholder="Relate o que foi consertado..."></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Evidência de Conclusão (Foto)</label>
-                                <input type="file" name="foto" class="form-control" accept="image/*">
-                            </div>
-                            <button type="submit" class="btn btn-success btn-lg w-100">
-                                <i class="bi bi-check-circle"></i> CONCLUIR SERVIÇO
-                            </button>
-                        </form>
+                    <!-- Fluxo de Ações -->
+                    <div id="fluxoAcoes" class="mt-5">
+                        <button id="btnIniciar" onclick="alterarStatus('iniciar')" class="btn btn-primary w-100 service-action-btn shadow d-none">
+                            INICIAR ATENDIMENTO <i class="bi bi-play-circle-fill ms-2"></i>
+                        </button>
 
-                        <div id="areaConcluido" style="display:none;" class="text-center">
-                            <div class="alert alert-info">
-                                <i class="bi bi-lock-fill"></i> Esta Ordem de Serviço já foi concluída e aguarda encerramento do gestor.
-                            </div>
+                        <div id="formConclusao" class="d-none animate-fade-in">
+                            <h5 class="fw-bold mb-3">Relatório de Conclusão</h5>
+                            <form id="formFinalizar">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Solução Aplicada</label>
+                                    <textarea id="solucao" class="form-control border-0 shadow-sm" rows="4" required placeholder="O que foi feito para resolver?"></textarea>
+                                </div>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-6">
+                                        <label class="form-label small fw-bold">Tempo Gasto (min)</label>
+                                        <input type="number" id="tempo" class="form-control border-0 shadow-sm" placeholder="Ex: 45" required>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small fw-bold">Foto da Solução</label>
+                                        <input type="file" id="foto" class="form-control border-0 shadow-sm" accept="image/*">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-success w-100 service-action-btn shadow">
+                                    CONCLUIR CHAMADO <i class="bi bi-check-all ms-2"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modalFoto" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content bg-dark">
-                <div class="modal-body p-0 text-center">
-                    <img src="" id="imgModal" class="img-fluid">
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
                 </div>
             </div>
         </div>
@@ -106,123 +89,80 @@ $id = $_GET['id'] ?? 0;
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Amplia a imagem no modal
-        function verFoto(url) {
-            document.getElementById('imgModal').src = url;
-            new bootstrap.Modal(document.getElementById('modalFoto')).show();
-        }
-
-        // Carrega dados do chamado e fotos
         async function carregarDados() {
-            try {
-                const res = await fetch(`api/chamados.php?id=<?= $id ?>`);
-                const c = await res.json();
+            const res = await fetch(`api/chamados.php?id=<?= $id ?>`);
+            const c = await res.json();
 
-                document.getElementById('detalhesTexto').innerHTML = `
-                    <p class="mb-1"><strong>Local:</strong> ${c.bloco_nome} - ${c.ambiente_nome}</p>
-                    <p class="mb-1"><strong>Solicitante:</strong> ${c.solicitante_nome}</p>
-                    <p class="mb-0"><strong>Descrição:</strong> ${c.descricao_problema}</p>
-                `;
+            document.getElementById('infoLocal').innerText = `${c.bloco_nome} - ${c.ambiente_nome}`;
+            document.getElementById('infoPrioridade').innerText = c.prioridade.toUpperCase();
+            document.getElementById('infoPrioridade').className = `fw-bold fs-5 ${obterCorPrioridade(c.prioridade)}`;
+            document.getElementById('infoDescricao').innerText = c.descricao_problema;
+            
+            const badge = document.getElementById('badgeStatus');
+            badge.innerText = c.status.replace('_', ' ').toUpperCase();
+            badge.className = `badge px-3 py-2 ${obterBadgeClass(c.status)}`;
 
-                // Controle de interface por status
-                if (c.status === 'agendado') {
-                    document.getElementById('areaIniciar').style.display = 'block';
-                } else if (c.status === 'em_execucao') {
-                    document.getElementById('formFinalizar').style.display = 'block';
-                } else {
-                    document.getElementById('areaConcluido').style.display = 'block';
-                }
+            // Controlar visibilidade de botões
+            if(c.status === 'agendado') {
+                document.getElementById('btnIniciar').classList.remove('d-none');
+            } else if(c.status === 'em_execucao') {
+                document.getElementById('formConclusao').classList.remove('d-none');
+            }
 
-                // Carrega Anexos (Fotos de abertura/conclusão)
-                const resAnexos = await fetch(`api/anexos.php?id_chamado=<?= $id ?>`);
-                const anexos = await resAnexos.json();
-                const container = document.getElementById('containerFotos');
-                container.innerHTML = anexos.map(a => `
-                    <div class="text-center">
-                        <img src="${a.caminho_arquivo}" class="thumb-img" onclick="verFoto('${a.caminho_arquivo}')">
-                        <small class="d-block text-muted" style="font-size:0.7rem">${a.tipo_anexo === 'abertura' ? 'Abertura' : 'Conclusão'}</small>
-                    </div>
-                `).join('');
-                
-                carregarComentarios();
-            } catch (err) {
-                console.error("Falha ao carregar dados:", err);
+            // Fotos
+            const resFotos = await fetch(`api/anexos.php?id_chamado=<?= $id ?>`);
+            const fotos = await resFotos.json();
+            const container = document.getElementById('containerFotos');
+            if(fotos.length > 0) {
+                container.innerHTML = '<div class="col-12"><small class="info-label">Fotos da Abertura</small></div>';
+                fotos.forEach(f => {
+                    if(f.tipo_anexo === 'abertura') {
+                        container.innerHTML += `<div class="col-4"><img src="${f.caminho_arquivo}" class="img-fluid rounded-3 border" style="height: 100px; width: 100%; object-fit: cover;"></div>`;
+                    }
+                });
             }
         }
 
-        // Iniciar Atendimento
-        async function mudarStatus(acao) {
-            const res = await fetch(`api/tecnico_acoes.php?acao=${acao}`, {
+        async function alterarStatus(acao) {
+            const res = await fetch('api/tecnico_acoes.php', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ id_chamado: <?= $id ?> })
+                body: JSON.stringify({ id_chamado: <?= $id ?>, acao: acao })
             });
-            const result = await res.json();
-            if(result.success) location.reload();
+            if((await res.json()).success) location.reload();
         }
 
-        // Finalizar com Upload e Redirecionar
         document.getElementById('formFinalizar').onsubmit = async (e) => {
             e.preventDefault();
-            const formData = new FormData(e.target);
+            const formData = new FormData();
+            formData.append('id_chamado', <?= $id ?>);
+            formData.append('acao', 'concluir');
+            formData.append('solucao', document.getElementById('solucao').value);
+            formData.append('tempo', document.getElementById('tempo').value);
+            const fotoFile = document.getElementById('foto').files[0];
+            if(fotoFile) formData.append('foto', fotoFile);
 
-            try {
-                const res = await fetch('api/tecnico_acoes.php?acao=finalizar', {
-                    method: 'POST',
-                    body: formData
-                });
-                const result = await res.json();
-                
-                if (result.success) {
-                    alert("Serviço finalizado com sucesso!");
-                    window.location.href = 'tecnico_minhas_tarefas.php';
-                } else {
-                    alert("Erro: " + result.message);
-                }
-            } catch (err) {
-                alert("Erro na comunicação com o servidor.");
+            const res = await fetch('api/tecnico_acoes.php', { method: 'POST', body: formData });
+            const result = await res.json();
+            if(result.success) {
+                alert("Serviço concluído com sucesso!");
+                location.href = 'tecnico_minhas_tarefas.php';
+            } else {
+                alert("Erro: " + result.message);
             }
         };
 
-        // Carregar Comentários (Evita undefined usando fallback de chaves)
-        async function carregarComentarios() {
-            const res = await fetch(`api/comentarios.php?id_chamado=<?= $id ?>`);
-            const dados = await res.json();
-            
-            const lista = document.getElementById('listaComentarios');
-            if (dados.length === 0) {
-                lista.innerHTML = '<small class="text-muted">Nenhuma atualização registrada.</small>';
-                return;
-            }
-
-            lista.innerHTML = dados.map(m => `
-                <div class="msg shadow-sm">
-                    <small class="text-primary fw-bold">${m.nome}</small>
-                    <div style="font-size: 0.9rem;">${m.texto || m.comentario || "..."}</div>
-                </div>
-            `).join('');
-            
-            lista.scrollTop = lista.scrollHeight; // Scroll automático para o fim
+        function obterBadgeClass(s) {
+            const map = { 'agendado': 'bg-info', 'em_execucao': 'bg-warning text-dark', 'concluido': 'bg-success' };
+            return map[s] || 'bg-secondary';
         }
 
-        // Enviar novo comentário
-        async function enviarComentario() {
-            const input = document.getElementById('txtMsg');
-            if(!input.value.trim()) return;
-
-            await fetch('api/comentarios.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ id_chamado: <?= $id ?>, comentario: input.value })
-            });
-            input.value = '';
-            carregarComentarios();
+        function obterCorPrioridade(p) {
+            const map = { 'urgente': 'text-danger', 'alta': 'text-warning', 'media': 'text-primary', 'baixa': 'text-secondary' };
+            return map[p] || '';
         }
 
-        // Inicializa a página
         carregarDados();
-        // Atualiza o diário a cada 10 segundos
-        setInterval(carregarComentarios, 10000);
     </script>
 </body>
 </html>

@@ -155,9 +155,9 @@ CREATE TABLE IF NOT EXISTS chamados_comentarios (
 
 -- Inserir Usuários Padrão (Senha '123456' hash exemplo)
 INSERT INTO usuarios (nome, email, senha_hash, perfil) VALUES 
-('Admin Gestor', 'admin@sgm.com', '$2y$10$abcdefgh...', 'gestor'),
-('João Técnico', 'tecnico@sgm.com', '$2y$10$abcdefgh...', 'tecnico'),
-('Maria Solicitante', 'usuario@sgm.com', '$2y$10$abcdefgh...', 'solicitante');
+('Admin Gestor', 'admin@sgm.com', '$2y$10$gBWSPw8HnKtioh4flBc6WuCpU4Va2Dni2.McCi5Bc1yFa.L0u26r.', 'gestor'),
+('João Técnico', 'tecnico@sgm.com', '$2y$10$gBWSPw8HnKtioh4flBc6WuCpU4Va2Dni2.McCi5Bc1yFa.L0u26r.', 'tecnico'),
+('Maria Solicitante', 'usuario@sgm.com', '$2y$10$gBWSPw8HnKtioh4flBc6WuCpU4Va2Dni2.McCi5Bc1yFa.L0u26r.', 'solicitante');
 
 -- Inserir Tipos de Serviço Básicos
 INSERT INTO tipos_servico (nome) VALUES 
